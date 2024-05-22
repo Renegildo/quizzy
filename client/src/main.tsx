@@ -1,0 +1,47 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+
+import {
+  createBrowserRouter,
+  RouterProvider
+} from 'react-router-dom'
+import App from './pages/app';
+import Home from './pages/home';
+import Quiz from './pages/quiz';
+import NewQuiz from './pages/new-quiz';
+import Login from './pages/auth/login';
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/app",
+    element: <App />,
+  },
+  {
+    path: "/app/q/:id",
+    element: <Quiz />,
+  },
+  {
+    path: "/app/u/:id",
+    element: <p>user</p>,
+  },
+  {
+    path: "/app/newQuiz",
+    element: <NewQuiz />
+  },
+  {
+    path: "/login",
+    element: <Login />
+  }
+]);
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+);
+
