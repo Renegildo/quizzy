@@ -1,7 +1,7 @@
 import { PrismaClient, Question } from '@prisma/client';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { sign } from 'jsonwebtoken';
+import { sign, verify } from 'jsonwebtoken';
 import { verifyJWT } from './middleware/verifyJWT';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -90,6 +90,36 @@ app.put("/user", verifyJWT, express.json(), async (req, res) => {
 // Auth routes
 // ###############
 
+app.post("/refreshToken", express.json(), async (req, res) => {
+  const refreshToken = req.body.refreshToken;
+  if (!refreshToken) return res.status(401);
+
+  const decoded = verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+  if (!decoded || typeof (decoded) === "string") return res.status(401);
+
+  const user = await db.user.findUnique({
+    where: {
+      id: decoded.id,
+    },
+  });
+
+  if (!user) return res.status(401);
+
+  const token = sign(
+    { id: user.id, username: user.username },
+    process.env.JWT_SECRET!,
+    { expiresIn: 60 * 5 },
+  );
+
+  const newRefreshToken = sign(
+    { id: user.id },
+    process.env.JWT_REFRESH_SECRET!,
+    { expiresIn: 60 * 60 * 24 * 7 },
+  );
+
+  return res.json({ token, refreshToken: newRefreshToken });
+});
+
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -119,7 +149,13 @@ app.post("/login", async (req, res) => {
     { expiresIn: 60 * 5 } // Expires in 5 minutes
   );
 
-  res.json({ token });
+  const refreshToken = sign(
+    { id: user.id },
+    process.env.JWT_REFRESH_SECRET!,
+    { expiresIn: 60 * 60 * 24 * 7 },
+  );
+
+  res.json({ token, refreshToken });
 });
 
 app.post("/register", async (req, res) => {
