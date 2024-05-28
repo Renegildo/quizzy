@@ -11,10 +11,11 @@ const useSelf = () => {
   useEffect(() => {
     const fetchSelf = async () => {
       const token = cookies.get("token");
+      const refreshToken = cookies.get("refreshToken");
 
-      if (!token) return navigate("/login");
+      if (!token || !refreshToken) return navigate("/login");
 
-      const newSelf = await getSelf(token);
+      const newSelf = await getSelf(token, refreshToken);
 
       console.log("new self:", newSelf);
       if (!newSelf) return navigate("/login");

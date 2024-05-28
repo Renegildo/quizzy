@@ -11,6 +11,7 @@ import Home from './pages/home';
 import Quiz from './pages/quiz';
 import NewQuiz from './pages/new-quiz';
 import Login from './pages/auth/login';
+import User from './pages/user';
 
 const router = createBrowserRouter([
   {
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/app/u/:id",
-    element: <p>user</p>,
+    element: <User />,
   },
   {
     path: "/app/newQuiz",

@@ -48,9 +48,10 @@ const NewQuiz = () => {
 
   const handleCreateQuiz = async () => {
     const token = cookies.get("token");
-    if (!token) return navigate("/login");
+    const refreshToken = cookies.get("refreshToken");
+    if (!token || !refreshToken) return navigate("/login");
 
-    const response = await createQuiz(quizTitle, quizDescription, questions, token);
+    const response = await createQuiz(quizTitle, quizDescription, questions, token, refreshToken);
     console.log(response);
   }
 

@@ -18,18 +18,23 @@ const App = () => {
   }, []);
 
   return (
-    <>
+    <div className="bg-background text-white">
       <Header />
-      {
-        quizzes ? (
-          quizzes.map((quiz: Quiz) => (
-            <QuizCard quiz={quiz} key={quiz.id} />
-          ))
-        ) : (
-          <p>loading</p>
-        )
-      }
-    </>
+      <h1 className="ml-3 text-4xl font-bold mt-8 mb-4">
+        Lista de Quizzes
+      </h1>
+      <div className="flex gap-5 flex-col mt-3">
+        {
+          quizzes ? (
+            quizzes.map((quiz: Quiz) => (
+              <QuizCard quiz={quiz} key={quiz.id} />
+            ))
+          ) : (
+            <p>loading</p>
+          )
+        }
+      </div>
+    </div>
   );
 }
 

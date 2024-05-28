@@ -1,10 +1,11 @@
 import { PrismaClient, Question } from '@prisma/client';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { sign, verify } from 'jsonwebtoken';
+import { verify } from 'jsonwebtoken';
 import { verifyJWT } from './middleware/verifyJWT';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { generateRefreshToken, generateToken } from './utils/jwt';
 
 dotenv.config();
 
@@ -34,7 +35,8 @@ app.get("/users", verifyJWT, async (_, res) => {
   res.json(users);
 });
 
-app.get("/user/:id", verifyJWT, async (req, res) => {
+// TODO: add verifyJWT to this route
+app.get("/user/:id", async (req, res) => {
   const { id } = req.params;
 
   if (!id) return res.status(400).json({ msg: "No id" })
@@ -43,8 +45,8 @@ app.get("/user/:id", verifyJWT, async (req, res) => {
     where: { id }
   });
 
-  if (!user) return res.status(500).json({ msg: "Could not found user" });
-  res.status(500).json({ msg: "Could not found user" });
+  if (!user) return res.status(404).json({ msg: "Could not found user" });
+  res.json({ user });
 });
 
 app.delete("/user/:id", verifyJWT, async (req, res) => {
@@ -105,19 +107,12 @@ app.post("/refreshToken", express.json(), async (req, res) => {
 
   if (!user) return res.status(401);
 
-  const token = sign(
-    { id: user.id, username: user.username },
-    process.env.JWT_SECRET!,
-    { expiresIn: 60 * 5 },
-  );
+  const token = generateToken({
+    id: user.id,
+    username: user.username,
+  });
 
-  const newRefreshToken = sign(
-    { id: user.id },
-    process.env.JWT_REFRESH_SECRET!,
-    { expiresIn: 60 * 60 * 24 * 7 },
-  );
-
-  return res.json({ token, refreshToken: newRefreshToken });
+  return res.json({ token });
 });
 
 app.post("/login", async (req, res) => {
@@ -143,17 +138,14 @@ app.post("/login", async (req, res) => {
     return res.status(401).json({ msg: "Password is incorrect" });
   }
 
-  const token = sign(
-    { username: user.username, id: user.id },
-    process.env.JWT_SECRET!,
-    { expiresIn: 60 * 5 } // Expires in 5 minutes
-  );
+  const token = generateToken({
+    id: user.id,
+    username: username,
+  });
 
-  const refreshToken = sign(
-    { id: user.id },
-    process.env.JWT_REFRESH_SECRET!,
-    { expiresIn: 60 * 60 * 24 * 7 },
-  );
+  const refreshToken = generateRefreshToken({
+    id: user.id,
+  });
 
   res.json({ token, refreshToken });
 });
@@ -210,7 +202,8 @@ app.get("/quizzes", async (_, res) => {
       creator: {
         select: {
           username: true,
-        }
+          id: true,
+        },
       },
     },
   });

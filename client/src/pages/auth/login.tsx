@@ -17,9 +17,11 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const token = await login(username, password);
-    if (!token) return;
+    const { token, refreshToken } = await login(username, password);
+
     cookies.set("token", token);
+    cookies.set("refreshToken", refreshToken);
+
     return navigate("/app");
   }
 
