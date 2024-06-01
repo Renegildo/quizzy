@@ -12,6 +12,7 @@ import Quiz from './pages/quiz';
 import NewQuiz from './pages/new-quiz';
 import Login from './pages/auth/login';
 import User from './pages/user';
+import Register from './pages/auth/register';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />
+  },
+  {
+    path: "/register",
+    element: <Register />
   }
 ]);
 

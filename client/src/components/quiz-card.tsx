@@ -5,6 +5,7 @@ import { deleteQuiz } from "../utils/api";
 import cookies from 'js-cookie';
 
 import { FaTrash } from 'react-icons/fa';
+import Skeleton from "./skeleton";
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -31,11 +32,13 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
         <p className="text-mutedText">
           {quiz.description}
         </p>
-        <p className="text-mutedText mt-2">
+        <p className="text-mutedText mt-2 flex gap-1">
           Criado por:
-          <b className="text-white">
-            {" " + quiz.creator.username}
-          </b>
+          <Link to={`/app/u/${quiz.creator.id}`}>
+            <b className="text-white underline">
+              {quiz.creator.username}
+            </b>
+          </Link>
         </p>
       </Link>
       <button
@@ -47,6 +50,18 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
       >
         <FaTrash className="w-4 h-4" />
       </button>
+    </div>
+  );
+}
+
+export const QuizCardSkeleton = () => {
+  return (
+    <div className="flex gap-5 bg-secondary p-3 mx-3 rounded-lg shadow-lg shadow-black/40 items-start">
+      <div className="w-full">
+        <Skeleton className="h-10 w-40 rounded-lg" />
+        <Skeleton className="h-32 w-full my-3 rounded-lg" />
+        <Skeleton className="h-5 w-32 rounded-lg" />
+      </div>
     </div>
   );
 }

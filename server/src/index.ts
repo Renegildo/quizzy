@@ -39,10 +39,26 @@ app.get("/users", verifyJWT, async (_, res) => {
 app.get("/user/:id", async (req, res) => {
   const { id } = req.params;
 
-  if (!id) return res.status(400).json({ msg: "No id" })
+  if (!id) return res.status(400).json({ msg: "No id" });
 
   const user = await db.user.findUnique({
-    where: { id }
+    where: { id },
+    select: {
+      id: true,
+      username: true,
+      created_at: true,
+      updated_at: true,
+      quizzes: {
+        include: {
+          creator: {
+            select: {
+              username: true,
+              id: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!user) return res.status(404).json({ msg: "Could not found user" });
@@ -175,11 +191,11 @@ app.post("/register", async (req, res) => {
 
   const hash = await bcrypt.hash(password, saltRounds)
 
-  const response = await db.user.create({
+  await db.user.create({
     data: { username, password: hash },
   });
 
-  res.json(response);
+  res.json({ msg: "User created successfully" });
 });
 
 app.get("/self", verifyJWT, (req, res) => {

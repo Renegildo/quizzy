@@ -27,6 +27,15 @@ export const getUser = async (id: string) => {
   return user.data.user;
 }
 
+export const register = async (username: string, password: string) => {
+  const registerResponse = await axios.post(
+    apiUrl + "/register",
+    { username, password },
+  );
+
+  return registerResponse.data;
+}
+
 export const login = async (username: string, password: string) => {
   const loginReponse = await axios.post(
     apiUrl + "/login",
