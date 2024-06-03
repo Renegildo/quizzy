@@ -185,9 +185,15 @@ app.post("/register", async (req, res) => {
     return res.status(400).json({ msg: "Password too small" });
   }
 
-  if (password.length > 128) {
+  if (password.length > 500) {
     return res.status(400).json({ msg: "Passsword too large" });
   }
+
+  const user = await db.user.findUnique({
+    where: { username },
+  });
+
+  if (user) return res.status(409).json({ msg: "Username already taken" });
 
   const hash = await bcrypt.hash(password, saltRounds)
 

@@ -9,9 +9,11 @@ import Skeleton from "./skeleton";
 
 interface QuizCardProps {
   quiz: Quiz;
+  handleQuizDelete: () => void;
 }
 
-const QuizCard = ({ quiz }: QuizCardProps) => {
+const QuizCard = ({ quiz, handleQuizDelete }: QuizCardProps) => {
+
   const { self } = useSelf();
 
   const handleDelete = async () => {
@@ -19,8 +21,8 @@ const QuizCard = ({ quiz }: QuizCardProps) => {
     const refreshToken = cookies.get("refreshToken");
     if (!token || !refreshToken) return;
 
-    const response = await deleteQuiz(quiz.id, token, refreshToken);
-    console.log(response);
+    await deleteQuiz(quiz.id, token, refreshToken);
+    handleQuizDelete();
   }
 
   return (

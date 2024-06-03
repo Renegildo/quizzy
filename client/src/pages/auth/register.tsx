@@ -9,18 +9,97 @@ const Register = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+  });
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const newUser = await register(username, password);
-    if (!newUser.msg) return; //TODO: add error handler
+    let hasErrors = false;
+    let newErrors = {
+      username: errors.username,
+      password: errors.password,
+    };
 
-    const { token, refreshToken } = await login(username, password);
+    if (!username || username.length < 3) {
+      newErrors = {
+        ...newErrors,
+        username: "Nome de usuario muito curto",
+      };
+      hasErrors = true;
+    } else {
+      newErrors = {
+        ...newErrors,
+        username: "",
+      }
+    }
 
-    cookies.set("token", token);
-    cookies.set("refreshToken", refreshToken);
+    if (username.length > 20) {
+      newErrors = {
+        ...newErrors,
+        username: "Nome de usuario muito longo",
+      };
+      hasErrors = true;
+    } else {
+      newErrors = {
+        ...newErrors,
+        username: "",
+      }
+    }
 
-    return navigate("/app");
+    if (!password || password.length < 8) {
+      newErrors = {
+        ...newErrors,
+        password: "Senha muito curta",
+      };
+      hasErrors = true;
+    } else {
+      newErrors = {
+        ...newErrors,
+        password: "",
+      }
+    }
+
+    if (password.length > 500) {
+      newErrors = {
+        ...newErrors,
+        password: "Senha muito longa",
+      };
+      hasErrors = true;
+    } else {
+      newErrors = {
+        ...newErrors,
+        password: "",
+      }
+    }
+
+    setErrors(newErrors);
+    if (hasErrors) return setIsLoading(false);
+
+    try {
+      const newUser = await register(username, password);
+      if (!newUser.msg) return; //TODO: add error handler
+
+      const { token, refreshToken } = await login(username, password);
+
+      cookies.set("token", token);
+      cookies.set("refreshToken", refreshToken);
+
+      return navigate("/app");
+    } catch (error: any) {
+      if (error.response.data.msg === "Username already taken") {
+        setErrors({
+          ...errors,
+          username: "Usuario com esse nome ja existe. Tente outro nome."
+        });
+        setIsLoading(false);
+      }
+    }
   }
 
   return (
@@ -36,10 +115,13 @@ const Register = () => {
             </label>
             <input
               type="text"
-              placeholder="username"
+              placeholder="Username"
               onChange={(e) => setUsername(e.target.value)}
-              className="p-2 bg-backgroundDarker rounded-lg"
+              className={`p-2 bg-backgroundDarker rounded-lg ${errors.username && "input-error"}`}
             />
+            <div className="text-sm text-red-400">
+              {errors.username}
+            </div>
           </div>
           <div className="flex flex-col gap-1">
             <label>
@@ -47,17 +129,21 @@ const Register = () => {
             </label>
             <input
               type="password"
-              placeholder="password"
+              placeholder="Senha"
               onChange={(e) => setPassword(e.target.value)}
-              className="p-2 bg-backgroundDarker rounded-lg"
+              className={`p-2 bg-backgroundDarker rounded-lg ${errors.password && "input-error"}`}
             />
+            <div className="text-sm text-red-400">
+              {errors.password}
+            </div>
           </div>
         </div>
         <button
           type="submit"
-          className="text-white bg-purpleAccent w-full py-2 rounded-lg"
+          className="text-white bg-purpleAccent w-full py-2 rounded-lg disabled:bg-purpleAccent/50"
+          disabled={isLoading}
         >
-          Criar conta
+          Registrar
         </button>
         <Link
           to="/login"

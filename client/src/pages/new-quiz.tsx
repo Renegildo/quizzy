@@ -29,6 +29,7 @@ const NewQuiz = () => {
 
   const handleProceed = (e: React.FormEvent) => {
     e.preventDefault();
+
     setFormState("questions");
   }
 
@@ -39,7 +40,10 @@ const NewQuiz = () => {
       answers: currentQuestionAnswers,
       correct_answer: currentQuestionCorrectAnswer,
     }]);
+
     setNewQuestionModalIsOpen(false);
+    setCurrentQuestionCorrectAnswer(0);
+    setCurrentQuestionAnswers([]);
   }
 
   const deleteItemFromCurrentQuestionAnswer = (index: number) => {
@@ -55,8 +59,8 @@ const NewQuiz = () => {
     const refreshToken = cookies.get("refreshToken");
     if (!token || !refreshToken) return navigate("/login");
 
-    const response = await createQuiz(quizTitle, quizDescription, questions, token, refreshToken);
-    console.log(response);
+    await createQuiz(quizTitle, quizDescription, questions, token, refreshToken);
+    navigate("/app");
   }
 
   return (
@@ -91,7 +95,8 @@ const NewQuiz = () => {
                 />
                 <button
                   type="submit"
-                  className="bg-purpleAccent text-white p-2 rounded-md mt-3"
+                  className="bg-purpleAccent text-white p-2 rounded-md mt-3 disabled:bg-purpleAccent/50"
+                  disabled={quizTitle === "" || quizDescription === ""}
                 >
                   Prosseguir
                 </button>
@@ -156,8 +161,9 @@ const NewQuiz = () => {
                 </button>
 
                 <button
-                  className="text-white bg-purpleAccent/20 py-2 rounded-md"
+                  className="text-white bg-purpleAccent py-2 rounded-md disabled:bg-purpleAccent/50"
                   onClick={handleCreateQuiz}
+                  disabled={questions.length === 0}
                 >
                   Criar quiz
                 </button>
@@ -249,7 +255,8 @@ const NewQuiz = () => {
                 <button
                   type="button"
                   onClick={createQuestion}
-                  className="bg-purpleAccent py-2 w-full rounded-md mt-5"
+                  className="bg-purpleAccent py-2 w-full rounded-md mt-5 disabled:bg-purpleAccent/50"
+                  disabled={currentQuestionAnswers.length === 0 || newQuestionContent === ""}
                 >
                   Criar Pergunta
                 </button>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getUser } from "../utils/api";
 import { useParams } from "react-router-dom";
 
-import { User } from "../utils/types";
+import { Quiz, User } from "../utils/types";
 import Header, { HeaderSkeleton } from "../components/header";
 import QuizCard, { QuizCardSkeleton } from "../components/quiz-card";
 import Skeleton from "../components/skeleton";
@@ -11,19 +11,24 @@ const UserPage = () => {
   const { id } = useParams();
   const [user, setUser] = useState<null | User>(null);
 
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) return;
 
       const newUser = await getUser(id);
-      console.log(newUser);
       setUser(newUser);
+      setQuizzes(newUser.quizzes);
     }
     fetchUser();
   }, []);
 
   if (!user) return <UserPageSkeleton />
+
+  const handleDeleteQuiz = (id: string) => {
+    setQuizzes(quizzes.filter(quiz => quiz.id !== id));
+  }
 
   return (
     <div>
@@ -33,8 +38,8 @@ const UserPage = () => {
           Quizzes criados por {user?.username}
         </h1>
         <div className="text-white flex flex-col gap-5 mt-4 ">
-          {user?.quizzes.map(quiz => (
-            <QuizCard quiz={quiz} />
+          {quizzes.map(quiz => (
+            <QuizCard handleQuizDelete={() => handleDeleteQuiz(quiz.id)} quiz={quiz} key={quiz.id} />
           ))}
         </div>
       </div>

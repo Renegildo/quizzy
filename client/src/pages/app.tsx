@@ -20,6 +20,10 @@ const App = () => {
 
   if (!quizzes) return <AppSkeleton />
 
+  const handleDeleteQuiz = (id: string) => {
+    setQuizzes(quizzes.filter(quiz => quiz.id !== id));
+  }
+
   return (
     <div className="bg-background">
       <Header />
@@ -32,7 +36,7 @@ const App = () => {
           {
             quizzes ? (
               quizzes.map((quiz: Quiz) => (
-                <QuizCard quiz={quiz} key={quiz.id} />
+                <QuizCard handleQuizDelete={() => handleDeleteQuiz(quiz.id)} quiz={quiz} key={quiz.id} />
               ))
             ) : (
               <p>loading</p>

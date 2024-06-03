@@ -17,6 +17,8 @@ const Login = () => {
   const passwordError = useRef<HTMLDivElement>(null);
   const usernameError = useRef<HTMLDivElement>(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const { self } = useSelf();
 
   if (self) navigate("/app");
@@ -24,9 +26,12 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsLoading(true);
+
     if (!usernameInput.current?.value || usernameInput.current.value.length < 3) {
       setUsernameErrorMessage("Nome de usuario muito curto");
       usernameError.current?.classList.remove("hidden");
+      setIsLoading(false);
       return usernameInput.current?.classList.add("input-error");
     } else {
       usernameError.current?.classList.add("hidden");
@@ -36,6 +41,7 @@ const Login = () => {
     if (!passwordInput.current?.value || passwordInput.current.value.length < 8) {
       setPasswordErrorMessage("Senha muito curta");
       passwordError.current?.classList.remove("hidden");
+      setIsLoading(false);
       return passwordInput.current?.classList.add("input-error");
     } else {
       usernameError.current?.classList.add("hidden");
@@ -59,6 +65,7 @@ const Login = () => {
         usernameInput.current.classList.add("input-error");
         usernameError.current?.classList.remove("hidden");
       }
+      setIsLoading(false);
     }
   }
 
@@ -108,7 +115,8 @@ const Login = () => {
         </div>
         <button
           type="submit"
-          className="text-white bg-purpleAccent w-full py-2 rounded-lg"
+          className="text-white bg-purpleAccent w-full py-2 rounded-lg disabled:bg-purpleAccent/50"
+          disabled={isLoading}
         >
           Login
         </button>
