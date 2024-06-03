@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { login } from "../../utils/api";
 import cookies from 'js-cookie';
 import useSelf from "../../hooks/useSelf";
@@ -9,6 +9,13 @@ const Login = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
+  const [usernameErrorMessage, setUsernameErrorMessage] = useState<string>("");
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState<string>("");
+
+  const usernameInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+  const passwordError = useRef<HTMLDivElement>(null);
+  const usernameError = useRef<HTMLDivElement>(null);
 
   const { self } = useSelf();
 
@@ -17,12 +24,42 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { token, refreshToken } = await login(username, password);
+    if (!usernameInput.current?.value || usernameInput.current.value.length < 3) {
+      setUsernameErrorMessage("Nome de usuario muito curto");
+      usernameError.current?.classList.remove("hidden");
+      return usernameInput.current?.classList.add("input-error");
+    } else {
+      usernameError.current?.classList.add("hidden");
+      usernameInput.current.classList.remove("input-error");
+    }
 
-    cookies.set("token", token);
-    cookies.set("refreshToken", refreshToken);
+    if (!passwordInput.current?.value || passwordInput.current.value.length < 8) {
+      setPasswordErrorMessage("Senha muito curta");
+      passwordError.current?.classList.remove("hidden");
+      return passwordInput.current?.classList.add("input-error");
+    } else {
+      usernameError.current?.classList.add("hidden");
+      usernameInput.current.classList.remove("input-error");
+    }
 
-    return navigate("/app");
+    try {
+      const { token, refreshToken } = await login(username, password);
+
+      cookies.set("token", token);
+      cookies.set("refreshToken", refreshToken);
+
+      return navigate("/app");
+    } catch (error: any) {
+      if (error.response.data.msg === "Password is incorrect") {
+        setPasswordErrorMessage("Senha incorreta");
+        passwordInput.current.classList.add("input-error");
+        passwordError.current?.classList.remove("hidden");
+      } else if (error.response.data.msg === "User not found") {
+        setUsernameErrorMessage("Usuario nao encontrado");
+        usernameInput.current.classList.add("input-error");
+        usernameError.current?.classList.remove("hidden");
+      }
+    }
   }
 
   return (
@@ -38,10 +75,17 @@ const Login = () => {
             </label>
             <input
               type="text"
-              placeholder="username"
+              placeholder="Username"
               onChange={(e) => setUsername(e.target.value)}
               className="p-2 bg-backgroundDarker rounded-lg"
+              ref={usernameInput}
             />
+            <div
+              className="text-red-400 text-sm hidden"
+              ref={usernameError}
+            >
+              {usernameErrorMessage}
+            </div>
           </div>
           <div className="flex flex-col gap-1">
             <label>
@@ -49,10 +93,17 @@ const Login = () => {
             </label>
             <input
               type="password"
-              placeholder="password"
+              placeholder="Senha"
               onChange={(e) => setPassword(e.target.value)}
               className="p-2 bg-backgroundDarker rounded-lg"
+              ref={passwordInput}
             />
+            <div
+              className="text-red-400 text-sm hidden"
+              ref={passwordError}
+            >
+              {passwordErrorMessage}
+            </div>
           </div>
         </div>
         <button
