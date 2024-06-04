@@ -15,7 +15,7 @@ export interface Quiz {
   questions: Question[];
 
   creator_id: string;
-  creator: { username: string };
+  creator: { username: string, id: string };
 
   created_at: string;
   updated_at: string;

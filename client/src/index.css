@@ -2,3 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  background: #14121D;
+}
+
+.input-error {
+  @apply border-red-400 border
+}
+

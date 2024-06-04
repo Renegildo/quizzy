@@ -10,8 +10,8 @@ export default function QuestionBall({
   return (
     <div
       className={
-        `w-10 h-10 rounded-full
-        ${type === "correct" ? "bg-green-500" : type === "wrong" ? "bg-red-500" : "bg-black"}`
+        `w-7 h-7 rounded-full 
+        ${type === "correct" ? "bg-purpleAccent" : type === "wrong" ? "bg-red-400" : "bg-white/10"}`
       }
     />
   );

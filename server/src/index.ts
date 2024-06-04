@@ -1,10 +1,11 @@
 import { PrismaClient, Question } from '@prisma/client';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { sign } from 'jsonwebtoken';
+import { verify } from 'jsonwebtoken';
 import { verifyJWT } from './middleware/verifyJWT';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { generateRefreshToken, generateToken } from './utils/jwt';
 
 dotenv.config();
 
@@ -34,17 +35,34 @@ app.get("/users", verifyJWT, async (_, res) => {
   res.json(users);
 });
 
-app.get("/user/:id", verifyJWT, async (req, res) => {
+// TODO: add verifyJWT to this route
+app.get("/user/:id", async (req, res) => {
   const { id } = req.params;
 
-  if (!id) return res.status(400).json({ msg: "No id" })
+  if (!id) return res.status(400).json({ msg: "No id" });
 
   const user = await db.user.findUnique({
-    where: { id }
+    where: { id },
+    select: {
+      id: true,
+      username: true,
+      created_at: true,
+      updated_at: true,
+      quizzes: {
+        include: {
+          creator: {
+            select: {
+              username: true,
+              id: true,
+            },
+          },
+        },
+      },
+    },
   });
 
-  if (!user) return res.status(500).json({ msg: "Could not found user" });
-  res.status(500).json({ msg: "Could not found user" });
+  if (!user) return res.status(404).json({ msg: "Could not found user" });
+  res.json({ user });
 });
 
 app.delete("/user/:id", verifyJWT, async (req, res) => {
@@ -90,6 +108,29 @@ app.put("/user", verifyJWT, express.json(), async (req, res) => {
 // Auth routes
 // ###############
 
+app.post("/refreshToken", express.json(), async (req, res) => {
+  const refreshToken = req.body.refreshToken;
+  if (!refreshToken) return res.status(401);
+
+  const decoded = verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
+  if (!decoded || typeof (decoded) === "string") return res.status(401);
+
+  const user = await db.user.findUnique({
+    where: {
+      id: decoded.id,
+    },
+  });
+
+  if (!user) return res.status(401);
+
+  const token = generateToken({
+    id: user.id,
+    username: user.username,
+  });
+
+  return res.json({ token });
+});
+
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -113,13 +154,16 @@ app.post("/login", async (req, res) => {
     return res.status(401).json({ msg: "Password is incorrect" });
   }
 
-  const token = sign(
-    { username: user.username, id: user.id },
-    process.env.JWT_SECRET!,
-    { expiresIn: 60 * 5 } // Expires in 5 minutes
-  );
+  const token = generateToken({
+    id: user.id,
+    username: username,
+  });
 
-  res.json({ token });
+  const refreshToken = generateRefreshToken({
+    id: user.id,
+  });
+
+  res.json({ token, refreshToken });
 });
 
 app.post("/register", async (req, res) => {
@@ -141,17 +185,23 @@ app.post("/register", async (req, res) => {
     return res.status(400).json({ msg: "Password too small" });
   }
 
-  if (password.length > 128) {
+  if (password.length > 500) {
     return res.status(400).json({ msg: "Passsword too large" });
   }
 
+  const user = await db.user.findUnique({
+    where: { username },
+  });
+
+  if (user) return res.status(409).json({ msg: "Username already taken" });
+
   const hash = await bcrypt.hash(password, saltRounds)
 
-  const response = await db.user.create({
+  await db.user.create({
     data: { username, password: hash },
   });
 
-  res.json(response);
+  res.json({ msg: "User created successfully" });
 });
 
 app.get("/self", verifyJWT, (req, res) => {
@@ -174,7 +224,8 @@ app.get("/quizzes", async (_, res) => {
       creator: {
         select: {
           username: true,
-        }
+          id: true,
+        },
       },
     },
   });
