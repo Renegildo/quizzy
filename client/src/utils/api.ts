@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cookies from 'js-cookie';
 
-const apiUrl = "http://localhost:3000";
+const apiUrl = "https://quizzy-pd77.onrender.com";
 
 export const getQuizzes = async () => {
   const quizzes = await axios.get(
