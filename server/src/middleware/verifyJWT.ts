@@ -12,20 +12,14 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
 
   verify(token, process.env.JWT_SECRET!, (err, decoded) => {
     if (err && err instanceof TokenExpiredError) {
-      console.log("getting newDecoded...")
       const newDecoded = decode(token);
-      console.log("newDecoded: ", newDecoded);
 
-      console.log("if: ", !newDecoded || typeof (newDecoded) === "string");
       if (!newDecoded || typeof (newDecoded) === "string") return res.status(401);
 
-      console.log("getting refreshToken...")
       const refreshToken = req.headers["refresh-token"] as string;
       if (!refreshToken) {
-        console.log("no refresh token this shit lol", refreshToken);
         return res.status(401);
       }
-      console.log("refreshToken: ", refreshToken);
       const refreshTokenDecoded = verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
       if (!refreshTokenDecoded) return res.status(401);
 
@@ -50,7 +44,6 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
       id: decoded.id,
     };
 
-    console.log("next shit");
     next();
   });
 }
