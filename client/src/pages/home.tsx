@@ -1,6 +1,15 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+// TODO: add a landing page
 
 function Home() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    navigate("/app");
+  }, []);
+
   return (
     <div>
       <p>
